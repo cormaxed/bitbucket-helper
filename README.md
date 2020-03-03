@@ -9,7 +9,7 @@ The helper allows you to clone or pull every bitbucket repository you have acces
 The utility requires `python3.7`
 
 ```
-pip install -u bitbucket-helper
+pip install --user bitbucket-helper
 ```
 
 ## Setup
