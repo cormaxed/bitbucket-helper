@@ -3,11 +3,88 @@ import argparse
 import os
 import configparser
 from os.path import expanduser
+from PyInquirer import prompt
 
-from helperlib.bitbucket.bitbucket_api import Bitbucket
+from helperlib.bitbucket.bitbucket_api import BitbucketServer, BitbucketCloud
 from helperlib.git.git_cli import Git
 
 config_file = os.path.join(expanduser("~"), '.bitbucket-helper.config')
+
+
+def config_bitbucket_server():
+    questions = [
+        {
+            'type': 'input',
+            'name': 'host',
+            'message': 'Bitbucket server hostname',
+        },
+        {
+            'type': 'input',
+            'name': 'username',
+            'message': 'Bitbucket server username',
+        },
+        {
+            'type': 'password',
+            'name': 'token',
+            'message': 'Bitbucket server personal access token',
+        },
+        {
+            'type': 'list',
+            'name': 'clone_type',
+            'message': 'Git clone using',
+            'choices': [
+                'http',
+                'ssh'
+            ]
+        },
+        {
+            'type': 'input',
+            'name': 'path',
+            'message': 'Working directory',
+            'default': os.path.join(expanduser("~"), "bitbucket-server")
+        }
+    ]
+
+    print("==Bitbucket Server Configuration ==")
+    return prompt(questions)
+
+
+def config_bitbucket_cloud():
+    print("==Bitbucket Cloud Configuration ==")
+    questions = [
+        {
+            'type': 'input',
+            'name': 'username',
+            'message': 'Bitbucket cloud username',
+        },
+        {
+            'type': 'input',
+            'name': 'email',
+            'message': 'Bitbucket cloud email address',
+        },
+        {
+            'type': 'password',
+            'name': 'password',
+            'message': 'Bitbucket cloud password',
+        },
+        {
+            'type': 'list',
+            'name': 'clone_type',
+            'message': 'Git clone using',
+            'choices': [
+                'https',
+                'ssh'
+            ]
+        },
+        {
+            'type': 'input',
+            'name': 'path',
+            'message': 'Working directory',
+            'default': os.path.join(expanduser("~"), "bitbucket-cloud")
+        }
+    ]
+
+    return prompt(questions)
 
 
 def read_config(force_update=False):
@@ -16,54 +93,86 @@ def read_config(force_update=False):
     if not force_update and os.path.isfile(config_file):
         config.read(config_file)
     else:
-        host = input("[Bitbucket server hostname]: ")
-        user = input("[Bitbucket username]: ")
-        pa_token = input(
-            "[Personal access token (from manage account)]: ")
-        cwd = input("[Working directory (defaults to ~/bitbucket/)]: ")
+        server_choice = 'Bitbucket Server'
+        cloud_choice = 'Bitbucket Cloud'
+        both_choice = 'Both'
 
-        if not cwd:
-            cwd = os.path.join(expanduser("~"), "bitbucket")
+        questions = [
+            {
+                'type': 'list',
+                'name': 'config',
+                'message': 'Configure ',
+                'choices': [
+                    server_choice,
+                    cloud_choice,
+                    both_choice
+                ]
+            }
+        ]
 
-        clone_type = input("[Clone using http or ssh]: ")
+        answers = prompt(questions)
+
+        if answers['config'] in [server_choice, both_choice]:
+            config['bitbucket_server'] = config_bitbucket_server()
+        if answers['config'] in [cloud_choice, both_choice]:
+            config['bitbucket_cloud'] = config_bitbucket_cloud()
 
         print("Writing config to " + config_file)
-        config["bitbucket"] = {'host': host, 'user': user,
-                               'token': pa_token, 'path': cwd, 'clone_type': clone_type}
         with open(config_file, 'w') as configfile:
             config.write(configfile)
 
-    return config["bitbucket"]
+    return config
+
+
+def get_bitbucket_services(config):
+    config = read_config()
+    services = []
+
+    for section in config.sections():
+        if section == 'bitbucket_server':
+            s_config = config[section]
+            services.append(BitbucketServer(host=s_config["host"],
+                                            user=s_config["username"],
+                                            token=s_config["token"],
+                                            clone_type=s_config["clone_type"],
+                                            working_dir=s_config["path"]))
+        if section == 'bitbucket_cloud':
+            s_config = config[section]
+            services.append(BitbucketCloud(user=s_config["username"],
+                                           password=s_config["password"],
+                                           email=s_config["email"],
+                                           clone_type=s_config["clone_type"],
+                                           working_dir=s_config["path"]))
+
+    return services
 
 
 def get_bitbucket_repos():
-    config = read_config()
-    clone_type = config["clone_type"]
+    for service in get_bitbucket_services(read_config()):
+        git = Git(service.working_dir)
 
-    bitbucket = Bitbucket(config["host"], config["user"], config["token"])
+        for repo in service.repos():
+            project_key = repo.project['key']
+            repo_path = git.local_repo_path(project_key, repo.clone_uri)
 
-    for repo in bitbucket.repos():
-        project_key = repo['project']['key']
-        clone_links = repo['links']['clone']
-        clone_link = list(filter(lambda t: t['name'] == clone_type, clone_links))[
-            0]['href']
+            if os.path.exists(repo_path):
+                git.pull(repo_path)
+                git.prune_local(repo_path)
+            else:
+                git.clone(project_key, repo.clone_uri)
 
-        git = Git(config["path"])
 
-        repo_path = git.local_repo_path(project_key, clone_link)
-
-        if os.path.exists(repo_path):
-            git.pull(repo_path)
-            git.prune_local(repo_path)
-        else:
-            git.clone(project_key, clone_link)
+def list_repos():
+    for service in get_bitbucket_services(read_config()):
+        for repo in service.repos():
+            print("\"{project}\",\"{clone_uri}\"".format(
+                project=repo.project['key'], clone_uri=repo.clone_uri))
 
 
 def gitlog():
-    config = read_config()
-
-    git = Git(config['path'])
-    git.log(args)
+    for service in get_bitbucket_services(read_config()):
+        git = Git(service.working_dir)
+        git.log(args)
 
 
 if __name__ == '__main__':
@@ -71,10 +180,11 @@ if __name__ == '__main__':
     sub_parser = parser.add_subparsers(dest='subparser_name')
 
     parser_clone = sub_parser.add_parser('sync')
+    parser_list = sub_parser.add_parser('list')
 
     parser_log = sub_parser.add_parser('log')
     parser_log.add_argument(
-        '--after', help='<date> Show commits more recent than a specific date')
+        '--after', help='<YYYY-mm-dd> Show commits more recent than a specific date')
     parser_log.add_argument(
         '--from_tag', help='Show commits from this tag')
     parser_log.add_argument(
@@ -85,5 +195,7 @@ if __name__ == '__main__':
         get_bitbucket_repos()
     elif args.subparser_name == 'log':
         gitlog()
+    elif args.subparser_name == 'list':
+        list_repos()
     else:
         parser.print_help()

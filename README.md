@@ -14,21 +14,27 @@ pip install bitbucket-helper
 
 ## Setup
 
-The first time you attempt to clone, you will get prompted to provide your bitbucket server hostname, username, a personal access token and a working directory where projects will get cloned.
+The first time you attempt to sync, you will get prompted to provide your bitbucket details. The tool supports both Bitbucket server and Bitbucket cloud.
 
-To generate a read-only personal access token. Go to Bitbucket -> Manage account -> Personal Access Tokens.
+Bitbucket server requires a read-only personal access token. To generate go to Bitbucket -> Manage account -> Personal Access Tokens.
+
+Bickbucket cloud requires an App Password if you use 2FA. The App must be granted `Team Membership -> Read, Projects -> Read`
+
+All configuration settings get stored in `~/.bitbucket-helper.config`. To reconfigure you can delete this file. 
+
+## Listing Repositories
+
+You can list all of the repositories you have permission to access with:
 
 ```
-bitbucket-helper sync
-
-[Bitbucket server hostname]: myserver.domain    
-[Bitbucket username]: myusername
-[Personal access token]: secret
-[Working directory (defaults to ~/bitbucket/)]: 
-[Clone using http or ssh]: http
+bitbucket-helper list
 ```
 
-All configuration settings get stored in `~/.bitbucket-helper.config`. 
+The command outputs the following quoted comma-separated values:
+
+```
+"project_key","clone_uri"
+```
 
 ## Synchronising 
 

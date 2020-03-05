@@ -48,18 +48,24 @@ class Git:
             ["git", "clone", clone_link], cwd=project_path)
 
     def log(self, args):
-        pretty_template = "--pretty=\"{project}/{repo}\",\"%C(auto)%h\",\"%at\",\"%aI\",\"%s\",\"%ae\""
-
-        # print csv header
-        print('\"repo\",\"commit_hash\",\"unix_time\",\"iso_date\",\"commit_message\",\"author\"')
+        pretty_template = "--pretty=\"{project}/{repo}\",\"%C(auto)%h\","\
+            + "\"%at\",\"%aI\",\"%s\",\"%ae\""""
 
         for project in os.listdir(self.working_dir):
             project_path = os.path.join(self.working_dir, project)
+
+            if not os.path.isdir(project_path):
+                continue
+
             repos = os.listdir(path=project_path)
             for repo in repos:
                 repo_path = os.path.join(project_path, repo)
+
+                if not os.path.isdir(repo_path):
+                    continue
+
                 pretty = pretty_template.format(project=project, repo=repo)
-                log_cmd = ["git", "log", pretty]
+                log_cmd = ["git", "log", "--merges", pretty]
                 log_cmd = log_cmd + self.__log_filters(args)
 
                 result = subprocess.run(log_cmd, check=False,

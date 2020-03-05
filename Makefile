@@ -33,16 +33,18 @@ dev_deps: .venv
 setup: deps dev_deps
 
 format:
-	. .venv/bin/activate && autopep8 --in-place -r src/ tests/
+	. .venv/bin/activate && autopep8 --in-place -r bitbucket-helper helperlib/ tests/
 
 lint:
-	. .venv/bin/activate && pylint -r n src/main.py src/git src/bitbucket
+	. .venv/bin/activate && pylint -r n bitbucket-helper helperlib/
 
 test:
 	. .venv/bin/activate && python -m unittest discover
 
-dist:
-	. .venv/bin/activate && python setup.py sdist	
+build: format lint test
+
+dist: build
+	. .venv/bin/activate && python setup.py sdist	bdist_wheel
 
 release: dist
 	. .venv/bin/activate && python -m twine upload dist/*

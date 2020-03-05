@@ -1,5 +1,5 @@
 [MASTER]
 init-hook="import sys; sys.path.append('.venv/lib/python3.7/site-packages/');"
 disable=
-  C0014, C0103, C0114, W0703, C0412, C0115, C0116, W0702, R0903
+  C0014, C0103, C0114, W0703, C0412, C0115, C0116, W0702, R0903, R0913
 
