@@ -65,7 +65,7 @@ class Git:
                     continue
 
                 pretty = pretty_template.format(project=project, repo=repo)
-                log_cmd = ["git", "log", "--merges", pretty]
+                log_cmd = ["git", "log", pretty]
                 log_cmd = log_cmd + self.__log_filters(args)
 
                 result = subprocess.run(log_cmd, check=False,
