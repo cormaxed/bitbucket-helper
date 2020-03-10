@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="bitbucket-helper",
-    version="0.0.5",
+    version="0.0.6",
     author="Cormac O'Mahony",
     author_email="cormac@omahony.id.au",
     description="A bitbucket server helper for working with lots of repos.",
