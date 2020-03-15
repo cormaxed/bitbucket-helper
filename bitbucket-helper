@@ -11,6 +11,7 @@ from helperlib.git.git_cli import Git
 
 config_file = os.path.join(expanduser("~"), '.bitbucket-helper.config')
 
+
 class UrlValidator(Validator):
     def validate(self, document):
         ok = regex.match('^http(s)?://.*', document.text)
