@@ -28,6 +28,8 @@ class Git:
             filter_args = ['--after=' + args.after]
         elif args.from_tag and args.to_tag:
             filter_args = [args.from_tag + '..' + args.to_tag]
+        elif args.from_tag:
+            filter_args = [args.from_tag + '..']
 
         return filter_args
 
@@ -48,6 +50,8 @@ class Git:
             ["git", "clone", clone_link], cwd=project_path)
 
     def log(self, args):
+        header = "\"repo\",\"commit_hash\",\"unix_time\",\"iso_date\",\"commit_message\",\"author\""
+        print(header)
         pretty_template = "--pretty=\"{project}/{repo}\",\"%C(auto)%h\","\
             + "\"%at\",\"%aI\",\"%s\",\"%ae\""""
 

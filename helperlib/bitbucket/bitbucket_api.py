@@ -1,19 +1,49 @@
+import datetime
 import stashy
 from pybitbucket.auth import BasicAuthenticator
 from pybitbucket.bitbucket import Client
 from pybitbucket.repository import Repository, RepositoryRole
 from pybitbucket.team import Team
+from pybitbucket.pullrequest import PullRequest
 
 
 class Repo:
-    def __init__(self, project, clone_uri):
+    def __init__(self, project, name, clone_uri):
         self.project = project
+        self.name = name
         self.clone_uri = clone_uri
 
     def __str__(self):
         return """{{'project': '{project}',\
+                    'name': '{name}, \
                     'clone_uri': '{clone_uri}'}}""".format(project=self.project,
+                                                           name=self.name,
                                                            clone_uri=self.clone_uri)
+
+
+class PR:
+    def __init__(self, repo, title, state, author, created_date, closed_date):
+        self.repo = repo
+        self.title = title
+        self.state = state
+        self.author = author
+        self.created_date = created_date
+        self.closed_date = closed_date
+
+    def __str__(self):
+        return """{{'project': '{project}',\
+                    'repo_name': '{repo_name}', \
+                    'title': '{title}', \
+                    'state': '{state}', \
+                    'author': '{author}, \
+                    'created_date: '{created_date}', \
+                    'closed_date: '{closed_date}'}}""".format(project=self.repo.project,
+                                                              repo_name=self.repo.name,
+                                                              title=self.title,
+                                                              state=self.state,
+                                                              author=self.author,
+                                                              created_date=self.created_date,
+                                                              closed_date=str(self.closed_date))
 
 
 class BitbucketServer:
@@ -22,20 +52,39 @@ class BitbucketServer:
         self.clone_type = clone_type
         self.working_dir = working_dir
 
+    def projects(self):
+        return self.bitbucket.projects.list()
+
     def repos(self):
         all_repos = []
-        projects = self.bitbucket.projects.list()
 
-        for project in projects:
+        for project in self.projects():
             project_key = project['key']
             for repo in self.bitbucket.projects[project_key].repos.list():
                 clone_links = repo['links']['clone']
                 clone_uri = list(filter(lambda t: t['name'] == self.clone_type, clone_links))[
                     0]['href']
 
-                all_repos.append(Repo(project, clone_uri))
+                all_repos.append(Repo(project, repo['name'], clone_uri))
 
         return all_repos
+
+    def pull_requests(self, repo, state):
+        pull_requests = []
+
+        for pr in self.bitbucket.projects[repo.project['key']].repos[repo.name].pull_requests.all(
+                state=state):
+            closed_date = None
+            if pr['state'] in ('MERGED', 'DECLINED'):
+                closed_date = datetime.datetime.utcfromtimestamp(
+                    pr['closedDate']/1000).isoformat()
+
+            created_date = datetime.datetime.utcfromtimestamp(
+                pr['createdDate']/1000).isoformat()
+            pull_requests.append(PR(repo, pr['title'], pr['state'], pr['author']['user']['name'],
+                                    created_date, closed_date))
+
+        return pull_requests
 
 
 class BitbucketCloud:
@@ -50,17 +99,36 @@ class BitbucketCloud:
             password,
             email))
 
+        self.teams = []
+        for team in Team.find_teams_for_role(RepositoryRole.MEMBER.value, client=self.bitbucket):
+            self.teams.append(team.username)
+
     def repos(self):
         all_repos = []
 
-        teams = Team.find_teams_for_role(
-            RepositoryRole.MEMBER.value, client=self.bitbucket)
-
-        for team in teams:
+        for team in self.teams:
             for repo in Repository.find_repositories_by_owner_and_role(
-                    owner=team.username, role=RepositoryRole.MEMBER.value, client=self.bitbucket):
+                    owner=team, role=RepositoryRole.MEMBER.value, client=self.bitbucket):
 
-                all_repos.append(Repo(project=repo.project,
+                all_repos.append(Repo(project=repo.project, name=repo.name,
                                       clone_uri=repo.clone[self.clone_type]))
 
         return all_repos
+
+    def pull_requests(self, repo, state):
+        pull_requests = []
+
+        for team in self.teams:
+            for pr in PullRequest.find_pullrequests_for_repository_by_state(repo.name,
+                                                                            state=state,
+                                                                            owner=team,
+                                                                            client=self.bitbucket):
+                if isinstance(pr, PullRequest):
+                    closed_date = None
+                    if pr.state in ('MERGED', 'DECLINED'):
+                        closed_date = pr.updated_on
+
+                    pull_requests.append(PR(repo, pr.title, pr.state, pr.author['display_name'],
+                                            pr.created_on, closed_date))
+
+        return pull_requests

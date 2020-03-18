@@ -181,6 +181,33 @@ def list_repos():
                 project=repo.project['key'], clone_uri=repo.clone_uri))
 
 
+def list_pull_requests():
+    header = "\"project\",\"repo\",\"created\",\"title\",\"state\",\"author\""
+    merged_header = "\"project\",\"repo\",\"created\",\"closed\",\"title\",\"state\",\"author\""
+
+    if args.state == 'MERGED':
+        print(merged_header)
+    else:
+        print(header)
+
+    for service in get_bitbucket_services(read_config()):
+        for repo in service.repos():
+            for pr in service.pull_requests(repo, args.state):
+                if pr.state in ('MERGED', 'DECLINED'):
+                    print("\"{project}\",\"{repo_name}\",\"{created_date}\",\"{closed_date}\""
+                          ",\"{title}\",\"{state}\",\"{author}\"".format(
+                              project=pr.repo.project['key'], repo_name=pr.repo.name,
+                              created_date=pr.created_date, closed_date=pr.closed_date,
+                              title=pr.title, state=pr.state, author=pr.author))
+                else:
+                    print("\"{project}\",\"{repo_name}\",\"{created_date}\",\"{title}\""
+                          ",\"{state}\",\"{author}\"".format(project=pr.repo.project['key'],
+                                                             repo_name=pr.repo.name,
+                                                             created_date=pr.created_date,
+                                                             title=pr.title, state=pr.state,
+                                                             author=pr.author))
+
+
 def gitlog():
     for service in get_bitbucket_services(read_config()):
         git = Git(service.working_dir)
@@ -192,7 +219,11 @@ if __name__ == '__main__':
     sub_parser = parser.add_subparsers(dest='subparser_name')
 
     parser_clone = sub_parser.add_parser('sync')
-    parser_list = sub_parser.add_parser('list')
+    parser_repos = sub_parser.add_parser('repo')
+
+    parser_pr = sub_parser.add_parser('pr')
+    parser_pr.add_argument('--state', help='Pull request state ALL, OPEN, MERGED, DECLINED',
+                           default='OPEN')
 
     parser_log = sub_parser.add_parser('log')
     parser_log.add_argument(
@@ -207,7 +238,10 @@ if __name__ == '__main__':
         get_bitbucket_repos()
     elif args.subparser_name == 'log':
         gitlog()
-    elif args.subparser_name == 'list':
+    elif args.subparser_name == 'repo':
         list_repos()
+    elif args.subparser_name == 'pr':
+        list_pull_requests()
+
     else:
         parser.print_help()

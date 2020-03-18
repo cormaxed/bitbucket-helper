@@ -55,6 +55,14 @@ Local directory structure:
 bitbucket-helper sync
 ```
 
+## Pull requests
+
+Bitbucker helper list pull request across all of your repositories. By default it returns OPEN pull requests, you can also filter for pull requests in a specific state e.g. ALL, OPEN, MERGED, DECLINED.
+
+```
+bitbucket-helper pr --state=MERGED
+```
+
 ## Git log commands
 
 Bitbucket helper makes it easy to search for commits across all of your repositories using simple filters. Log commands operate on locally synched repositories, so remember to do a `bitbucket-helper sync` first.
@@ -68,10 +76,3 @@ To search from commits between two tags:
 ```
 bitbucket-helper log --from_tag=1.9.0 --to_tag=1.9.1
 ```
-
-The command outputs the following quoted comma-separated values:
-
-```
-"repo","commit_hash","unix_time","iso_date","commit_message","author"
-```
-
