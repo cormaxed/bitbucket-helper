@@ -6,6 +6,9 @@ from pybitbucket.repository import Repository, RepositoryRole
 from pybitbucket.team import Team
 from pybitbucket.pullrequest import PullRequest
 
+XLS_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+ISO_DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
+
 
 class Repo:
     def __init__(self, project, name, clone_uri):
@@ -77,10 +80,10 @@ class BitbucketServer:
             closed_date = None
             if pr['state'] in ('MERGED', 'DECLINED'):
                 closed_date = datetime.datetime.utcfromtimestamp(
-                    pr['closedDate']/1000).isoformat()
+                    pr['closedDate']/1000).strftime(XLS_DATE_FORMAT)
 
             created_date = datetime.datetime.utcfromtimestamp(
-                pr['createdDate']/1000).isoformat()
+                pr['createdDate']/1000).strftime(XLS_DATE_FORMAT)
             pull_requests.append(PR(repo, pr['title'], pr['state'], pr['author']['user']['name'],
                                     created_date, closed_date))
 
@@ -126,9 +129,12 @@ class BitbucketCloud:
                 if isinstance(pr, PullRequest):
                     closed_date = None
                     if pr.state in ('MERGED', 'DECLINED'):
-                        closed_date = pr.updated_on
+                        closed_date = datetime.datetime.strptime(
+                            pr.updated_on, ISO_DATE_FORMAT).strftime(XLS_DATE_FORMAT)
 
+                    created_date = datetime.datetime.strptime(
+                        pr.created_on, ISO_DATE_FORMAT).strftime(XLS_DATE_FORMAT)
                     pull_requests.append(PR(repo, pr.title, pr.state, pr.author['display_name'],
-                                            pr.created_on, closed_date))
+                                            created_date, closed_date))
 
         return pull_requests
