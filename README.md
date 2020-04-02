@@ -27,7 +27,7 @@ All configuration settings get stored in `~/.bitbucket-helper.config`. To reconf
 You can list all of the repositories you have permission to access with:
 
 ```
-bitbucket-helper list
+bitbucket-helper repo
 ```
 
 The command outputs the following quoted comma-separated values:
