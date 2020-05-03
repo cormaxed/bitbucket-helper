@@ -1,30 +1,27 @@
-#bitbucket-helper
+# bitbucket-helper
 
-A command-line utility for working with lots of bitbucket server projects and repositories. 
+Bitbucket-helper is a command-line utility for working with lots of bitbucket server projects and repositories. This handy helper allows you to clone or pull every bitbucket repository you have access too. Repositories are pathed under their parent project, making it easy to identify the source project.
 
-The helper allows you to clone or pull every bitbucket repository you have access too. Repositories are pathed under their parent project, making it easy to identify the source project.
+# Installation  
 
-## Installation
-
-The utility requires `python3.7`
-
+The utility requires python3.7.
 ```
 pip install bitbucket-helper
 ```
 
-## Setup
+# Setup
 
-The first time you attempt to sync, you will get prompted to provide your bitbucket details. The tool supports both Bitbucket server and Bitbucket cloud.
+The first time you attempt to sync, you will get prompted to provide your bitbucket details. The tool supports both Bitbucket Server and Bitbucket Cloud.
 
-Bitbucket server requires a read-only personal access token. To generate go to Bitbucket -> Manage account -> Personal Access Tokens.
+Bitbucket Server requires a read-only personal access token. To generate goto Bitbucket -> Manage account -> Personal Access Tokens.
 
-Bickbucket cloud requires an App Password if you use 2FA. The App must be granted `Team Membership -> Read, Projects -> Read`
+BitBucket Cloud requires an App Password if you use 2FA. The App needs to be granted read access.
 
 All configuration settings get stored in `~/.bitbucket-helper.config`. To reconfigure you can delete this file. 
 
-## Listing Repositories
+# Listing Repositories
 
-You can list all of the repositories you have permission to access with:
+To list all of the repositories, you have permission to access:
 
 ```
 bitbucket-helper repo
@@ -36,14 +33,14 @@ The command outputs the following quoted comma-separated values:
 "project_key","clone_uri"
 ```
 
-## Synchronising 
+# Synchronising 
 
 The synchronisation function uses bitbucket APIs to get all accessible projects and repositories. 
 For each project, it will create a directory using its key. For each repository, we perform a `git clone` or a  `git pull` if we already have a local copy. After the pull, we prune and delete local branches that have been merged at the origin.
 
 Local directory structure:
 
-- working_directory (~/bitbucket)
+- working_directory (~/bitbucket-server)
   - proj1
     - repo1
     - repo2
@@ -57,7 +54,7 @@ bitbucket-helper sync
 
 ## Pull requests
 
-Bitbucker helper list pull request across all of your repositories. By default it returns OPEN pull requests, you can also filter for pull requests in a specific state e.g. ALL, OPEN, MERGED, DECLINED.
+Bitbucket helper can list pull requests across all of your repositories. By default it returns OPEN pull requests, you can also filter for pull requests in a specific state, e.g. ALL, OPEN, MERGED, DECLINED.
 
 ```
 bitbucket-helper pr --state=MERGED
@@ -76,3 +73,7 @@ To search from commits between two tags:
 ```
 bitbucket-helper log --from_tag=1.9.0 --to_tag=1.9.1
 ```
+
+## Find out more
+
+You can find out more [here](http://omahony.id.au/tech/2020/05/03/Bitbucket-Helper.html) 
