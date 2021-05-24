@@ -1,10 +1,10 @@
 import datetime
 import stashy
-from pybitbucket.auth import BasicAuthenticator
-from pybitbucket.bitbucket import Client
-from pybitbucket.repository import Repository, RepositoryRole
-from pybitbucket.team import Team
-from pybitbucket.pullrequest import PullRequest
+from pybitbucket37.auth import BasicAuthenticator
+from pybitbucket37.bitbucket import Client
+from pybitbucket37.repository import Repository, RepositoryRole
+from pybitbucket37.team import Team
+from pybitbucket37.pullrequest import PullRequest
 
 XLS_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 ISO_DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -122,7 +122,9 @@ class BitbucketCloud:
         pull_requests = []
 
         for team in self.teams:
-            for pr in PullRequest.find_pullrequests_for_repository_by_state(repo.name,
+            url_friendly_name = ' '.join(
+                repo.name.split(' - ')).replace(' ', '-')
+            for pr in PullRequest.find_pullrequests_for_repository_by_state(url_friendly_name,
                                                                             state=state,
                                                                             owner=team,
                                                                             client=self.bitbucket):
