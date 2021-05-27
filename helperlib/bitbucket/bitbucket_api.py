@@ -22,9 +22,9 @@ class Repo:
                     'name': '{name}, \
                     'clone_uri': '{clone_uri}',
                     'owner:': '{owner}'}}""".format(project=self.project,
-                                                           name=self.name,
-                                                           clone_uri=self.clone_uri,
-                                                           owner=self.owner)
+                                                    name=self.name,
+                                                    clone_uri=self.clone_uri,
+                                                    owner=self.owner)
 
 
 class PR:
@@ -71,7 +71,8 @@ class BitbucketServer:
                 clone_uri = list(filter(lambda t: t['name'] == self.clone_type, clone_links))[
                     0]['href']
 
-                all_repos.append(Repo(project, repo['name'], clone_uri))
+                all_repos.append(
+                    Repo(project, repo['name'], clone_uri, owner=None))
 
         return all_repos
 

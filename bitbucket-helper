@@ -3,8 +3,8 @@ import argparse
 import os
 from os.path import expanduser
 import configparser
-import regex
 import json
+import regex
 from PyInquirer import prompt, Validator, ValidationError
 
 from helperlib.bitbucket.bitbucket_api import BitbucketServer, BitbucketCloud
@@ -231,7 +231,8 @@ def create_snyk_import_data():
             targets.append(target)
 
     with open(args.outfile, 'w') as f:
-        json.dump({ 'targets': targets}, f)
+        json.dump({'targets': targets}, f)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='bitbucket-helper')
@@ -253,10 +254,14 @@ if __name__ == '__main__':
         '--to_tag', help='Show commit to this tag')
 
     parser_snyk_import = sub_parser.add_parser('snyk:import')
-    parser_snyk_import.add_argument('--orgid', help='Snyk organization identifier')
-    parser_snyk_import.add_argument('--integrationid', help='Snyk integration identifier')
-    parser_snyk_import.add_argument('--owner', help='Bitbucket cloud repository owner')
-    parser_snyk_import.add_argument('--outfile', help='Snyk projects output file', default='import-projects.json')
+    parser_snyk_import.add_argument(
+        '--orgid', help='Snyk organization identifier')
+    parser_snyk_import.add_argument(
+        '--integrationid', help='Snyk integration identifier')
+    parser_snyk_import.add_argument(
+        '--owner', help='Bitbucket cloud repository owner')
+    parser_snyk_import.add_argument(
+        '--outfile', help='Snyk projects output file', default='import-projects.json')
 
     args = parser.parse_args()
     if args.subparser_name == 'sync':

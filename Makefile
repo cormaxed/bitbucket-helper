@@ -33,7 +33,7 @@ dev_deps: .venv
 setup: deps dev_deps
 
 format:
-	. .venv/bin/activate && autopep8 --in-place -r bitbucket-helper helperlib/ tests/
+	. .venv/bin/activate && autopep8 --in-place -r bitbucket-helper helperlib/
 
 lint:
 	. .venv/bin/activate && pylint -r n bitbucket-helper helperlib/
@@ -44,7 +44,7 @@ test:
 build: format lint test
 
 dist: build
-	. .venv/bin/activate && python setup.py sdist	bdist_wheel
+	. .venv/bin/activate && python setup.py sdist bdist_wheel
 
 release: dist
 	. .venv/bin/activate && python -m twine upload dist/*
