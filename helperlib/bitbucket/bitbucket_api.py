@@ -11,17 +11,20 @@ ISO_DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
 
 class Repo:
-    def __init__(self, project, name, clone_uri):
+    def __init__(self, project, name, clone_uri, owner):
         self.project = project
         self.name = name
         self.clone_uri = clone_uri
+        self.owner = owner
 
     def __str__(self):
         return """{{'project': '{project}',\
                     'name': '{name}, \
-                    'clone_uri': '{clone_uri}'}}""".format(project=self.project,
+                    'clone_uri': '{clone_uri}',
+                    'owner:': '{owner}'}}""".format(project=self.project,
                                                            name=self.name,
-                                                           clone_uri=self.clone_uri)
+                                                           clone_uri=self.clone_uri,
+                                                           owner=self.owner)
 
 
 class PR:
@@ -113,8 +116,9 @@ class BitbucketCloud:
             for repo in Repository.find_repositories_by_owner_and_role(
                     owner=team, role=RepositoryRole.MEMBER.value, client=self.bitbucket):
 
-                all_repos.append(Repo(project=repo.project, name=repo.name,
-                                      clone_uri=repo.clone[self.clone_type]))
+                all_repos.append(Repo(project=repo.project, name=repo.slug,
+                                      clone_uri=repo.clone[self.clone_type],
+                                      owner=repo.owner.username))
 
         return all_repos
 

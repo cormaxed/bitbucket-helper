@@ -74,6 +74,21 @@ To search from commits between two tags:
 bitbucket-helper log --from_tag=1.9.0 --to_tag=1.9.1
 ```
 
+## Create a Snyk Import File
+
+Snyk created an [import utility](https://www.npmjs.com/package/snyk-api-import) to help import projects into BitBucket Cloud. The utility supports stable imports by pacing to avoid rate limiting and by implementing retries.
+
+The import tool requires an import configuration file that bitbucket-helper can generate for you.
+
+To generate an import configuration:
+
+* orgid - Can be found in https://app.snyk.io/org/YOUR_ORG/manage/settings
+* integrationid - Can be found in integrations menu for each SCM https://app.snyk.io/org/YOUR_ORG/manage/settings
+
+```
+bitbucket-helper snyk:import --owner <repositoryOwner> --orgid <snykOrganisationId> --integrationid <snykIntegrationId> --outfile /tmp/import-projects.json
+```
+
 ## Find out more
 
 You can find out more [here](http://omahony.id.au/tech/2020/05/03/Bitbucket-Helper.html) 
