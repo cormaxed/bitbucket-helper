@@ -108,7 +108,7 @@ class BitbucketCloud:
 
         self.teams = []
         for team in Team.find_teams_for_role(RepositoryRole.MEMBER.value, client=self.bitbucket):
-            self.teams.append(team.username)
+            self.teams.append(team['username'])
 
     def repos(self):
         all_repos = []
@@ -119,7 +119,7 @@ class BitbucketCloud:
 
                 all_repos.append(Repo(project=repo.project, name=repo.slug,
                                       clone_uri=repo.clone[self.clone_type],
-                                      owner=repo.owner.username))
+                                      owner=repo.owner['username']))
 
         return all_repos
 

@@ -1,0 +1,19 @@
+{
+  "configurations": {
+    "Account Launch": {
+      "adapter": "debugpy",
+      "configuration": {
+        "name": "Bitbucket-helper",
+        "type": "python",
+        "request": "launch",
+        "cwd": "${cwd}",
+        "python": ".venv/bin/python",
+        "stopOnEntry": true,
+        "console": "externalTerminal",
+        "debugOptions": [],
+        "program": "bitbucket-helper",
+        "args": ["repo"]
+      }
+    }
+  }
+}
